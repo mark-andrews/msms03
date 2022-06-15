@@ -104,3 +104,43 @@ sum(residuals(lm(Fertility ~ Education + Catholic, data = swiss))^2)
 # Sequential anova: Type I sums of squares --------------------------------
 
 anova(M6)
+sum(residuals(lm(Fertility ~ 1, data = swiss))^2) - sum(residuals(lm(Fertility ~ Agriculture, data = swiss))^2)
+sum(residuals(lm(Fertility ~ Agriculture, data = swiss))^2) - sum(residuals(lm(Fertility ~ Agriculture + Education, data = swiss))^2)
+sum(residuals(lm(Fertility ~ Education + Agriculture, data = swiss))^2) - sum(residuals(lm(Fertility ~ Agriculture + Education + Catholic, data = swiss))^2)
+sum(residuals(lm(Fertility ~ Agriculture + Education + Catholic, data = swiss))^2)
+
+M6 <- lm(Fertility ~ Agriculture + Education + Catholic, data = swiss)
+M6a <- lm(Fertility ~ Catholic + Agriculture + Education, data = swiss)
+anova(M6a)
+
+# proportion decrease in error --------------------------------------------
+
+(RSS_5 - RSS_6) / RSS_5
+M7 <- lm(Fertility ~ 1, data = swiss) # null model
+RSS_7 <- sum(residuals(M7)^2)
+
+(RSS_7 - RSS_6) / RSS_7 # R^2 of M6
+
+anova(M7, M6)
+
+
+
+# Nested model comparison in GLMs -----------------------------------------
+
+swiss_df <- mutate(swiss, z = Fertility > median(Fertility))
+
+M8 <- glm(z ~ Agriculture + Education, 
+          family = binomial(link = 'logit'),
+          data = swiss_df)
+
+M9 <- glm(z ~ Agriculture + Education + Catholic, 
+          family = binomial(link = 'logit'),
+          data = swiss_df)
+
+logLik(M8)
+logLik(M9)
+logLik(M9) - logLik(M8)
+
+deviance(M8)
+deviance(M9)
+deviance(M8) - deviance(M9)
