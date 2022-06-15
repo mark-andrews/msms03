@@ -67,3 +67,40 @@ logLik(M4) - logLik(M3) # log of the likelihod ratio
 -2 * logLik(M3)
 -2 * logLik(M4)
 
+
+# Nested model comparisons ------------------------------------------------
+
+M5 <- lm(Fertility ~ Agriculture + Education, data = swiss)
+M6 <- lm(Fertility ~ Agriculture + Education + Catholic, data = swiss)
+
+RSS_5 <- sum(residuals(M5)^2)
+RSS_6 <- sum(residuals(M6)^2)
+
+RSS_5
+RSS_6
+
+pie <- (RSS_5 - RSS_6) / RSS_6
+
+# Null hypothesis test on model fits of nested models
+anova(M5, M6)
+
+# F statistic
+(RSS_5 - RSS_6) / (RSS_6/M6$df.residual)
+
+# likelihood ratio
+logLik(M6) - logLik(M5)
+
+
+# drop1 nested model comparison -------------------------------------------
+
+drop1(M6, scope = ~ Catholic, test = 'F')
+drop1(M6, scope = ~ Agriculture, test = 'F')
+drop1(M6, scope = ~ Education + Agriculture, test = 'F')
+
+sum(residuals(lm(Fertility ~ Agriculture + Catholic, data = swiss))^2)
+sum(residuals(lm(Fertility ~ Education + Catholic, data = swiss))^2)
+
+
+# Sequential anova: Type I sums of squares --------------------------------
+
+anova(M6)
