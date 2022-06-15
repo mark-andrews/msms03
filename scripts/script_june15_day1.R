@@ -35,3 +35,35 @@ exp(26)
 sum(residuals(M2)^2)
 # RSS of M1
 sum(residuals(M1)^2)
+
+
+
+# Root mean square error --------------------------------------------------
+
+sqrt(mean(residuals(M1)^2))
+sqrt(mean(residuals(M2)^2))
+
+
+
+# Logistic regresion and deviance -----------------------------------------
+
+cars_df <- mutate(cars, z = dist > median(dist))
+
+# constant probability of being above average distance
+M3 <- glm(z ~ 1, 
+          family = binomial(link = 'logit'),
+          data = cars_df)
+
+# prob of being above average dist is function of speed
+M4 <- glm(z ~ speed, 
+          family = binomial(link = 'logit'),
+          data = cars_df)
+
+logLik(M3) # the probability of observing outcome given M3 (and mle's of unknowns)
+logLik(M4) # the probability of observing outcome given M4 (and mle's of unknowns)
+
+logLik(M4) - logLik(M3) # log of the likelihod ratio
+
+-2 * logLik(M3)
+-2 * logLik(M4)
+
