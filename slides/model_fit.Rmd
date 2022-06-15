@@ -1,0 +1,385 @@
+---
+title: "Probability, Likelihood, and Other Measures of Model Fit"
+author: |
+  | Mark Andrews
+  | Psychology Department, Nottingham Trent University
+  | 
+  | ```mark.andrews@ntu.ac.uk```
+fontsize: 10pt
+output:
+ beamer_presentation:
+  keep_tex: true
+  fonttheme: "serif"
+  includes:
+   in_header: preamble.tex
+bibliography: mjandrews.bib
+biblio-style: apalike     
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r, echo=F}
+knitr::opts_chunk$set(echo = F, prompt = F, warning = F, message = F, comment='#>')
+# Thanks to 
+# https://github.com/ramnathv/slidify/issues/189#issuecomment-15850008
+hook1 <- function(x){ gsub("```\n*```r*\n*", "", x) }
+hook2 <- function(x){ gsub("```\n+```\n", "", x) }
+knitr::knit_hooks$set(document = hook1)
+```
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(here)
+theme_set(theme_classic())
+
+```
+
+# Probabilistic generative model
+
+* In any statistical analysis, we assume our data is drawn from some probability distribution.
+* This is sometimes known as the *probabilistic generative model*, and in fact is exactly what we mean by the *statistical model*.
+* This model is a model of the *statistical population*, which could also be described as the true generative model.
+* In general in analyses, we aim to find a good, or good enough, model of the population.
+
+# Model evaluation
+
+* One general way we can evaluate a model is by asking if the data  is compatible with model.
+* One way to look at this is to calculate the probability of the data according to the model.
+* If the probability of observing the data is relatively high in one model than in another, then the data is more compatible with the former than the latter model.
+* We often refer to the probability of the data according to the model as the model's *likelihood*.
+
+
+
+# Example problem
+
+* Let's assume we are analysing the `dist` variable from the `cars` data, which is depicted in the following scatterplot:
+```{r, echo=T, out.width='0.67\\textwidth', fig.align='center'}
+cars %>% 
+  ggplot(aes(x = dist)) + geom_histogram(binwidth = 5)
+```
+
+# Probabilistic model
+
+* One possible model of the `dist` variable is the following
+$$
+y_i \sim N(\mu, \sigma^2)\quad \text{for $i \in 1...n$},
+$$
+where $y_i$ is the `dist` variable on observation $i$.
+
+* In other words, we are modelling `dist` as normally distributed with a mean $\mu$ and standard deviation $\sigma$, but we do not know the values of the parameters $\mu$ and $\sigma$.
+
+# Model likelihood
+
+\newcommand{\sigmamle}{\hat{\sigma}_{\text{mle}}}
+
+* Assuming values for $\mu$, $\sigma$, what the probability of the observed values of the `dist` variable, $y_1, y_2, y_3 \ldots y_n$?
+* This is 
+$$
+\Prob{y_1 \ldots y_n \given \mu, \sigma}.
+$$
+* In this model, all $y$'s are conditionally independent of one another, so the the joint probability is as follows:
+$$
+\Prob{y_1 \ldots y_n \given \mu, \sigma} = \prod_{i=1}^n \Prob{y_i \given \mu, \sigma}.
+$$
+* We do not know the values of $\mu$ and $\sigma$, so we use their *maximum likelihood estimates*: $\hat{\mu}$ and $\sigmamle$:
+$$
+\Prob{y_1 \ldots y_n \given \hat{\mu}, \sigmamle} = \prod_{i=1}^n \Prob{y_i \given \hat{\mu}, \sigmamle}.
+$$
+
+# Model log likelihood
+
+* The joint probability 
+$$
+\Prob{y_1 \ldots y_n \given \mu, \sigma} = \prod_{i=1}^n \Prob{y_i \given \mu, \sigma}.
+$$
+will be a very small number (a product of probabilities), so we usually calculate its logarithm:
+$$
+\log \left(\prod_{i=1}^n \Prob{y_i \given \mu, \sigma} \right) = \sum_{i=1}^n \log \Prob{y_i \given \mu, \sigma},
+$$
+and with the maximum likelihood estimators for the unknowns, this is
+$$
+\sum_{i=1}^n \log \Prob{y_i \given \hat{\mu}, \sigmamle}.
+$$
+
+# Model log likelihood: calculations
+
+```{r, echo=TRUE}
+y <- cars$dist
+M0 <- lm(y ~ 1) # normal model
+mu_hat <- coef(M0) # mle of mu
+sigma_mle <- sqrt(mean(residuals(M0)^2)) # mle of sigma
+
+dnorm(y, mean = mu_hat, sd = sigma_mle, log = TRUE) %>% 
+  sum()
+
+# same as 
+logLik(M0)
+```
+
+
+
+# Regression models
+
+* Often, for each observed value of the variable being modelled we have observed values of other variables (variously known as *covariates*, *predictor* variables, *independent* variables).
+* For example, for each value of `dist`, we have the speed of the car `speed`.
+* The first 10 observations of `cars` are:
+```{r, echo = T}
+head(cars, 10)
+```
+
+# Regression probabilistic model
+
+* Using the `speed` variable too, a potential model of the `dist` data is the following
+$$
+\begin{aligned}
+y_i &\sim N(\mu_i, \sigma^2)\quad \text{for $i \in 1...n$},\\
+\mu_i &= \beta_0 + \beta_1 x_i,
+\end{aligned}
+$$
+where $y_i$ and $x_i$ are the `dist` and `speed` variables on observation $i$.
+
+* In other words, we are modelling `dist` as normally distributed around a mean that is a linear function of `speed`, and with a fixed variance $\sigma^2$. This is exactly a simple linear regression model.
+
+* Here, we do not know the values of the parameters $\beta_0$, $\beta_1$, and $\sigma^2$.
+
+* Note that this is a probabilistic model of the outcome variable only.
+
+# Regression model likelihood, log likelihood
+
+* Assuming values for $\beta_0$, $\beta_1$, $\sigma$, what the probability of the observed values of the `dist` outcome variable, $y_1, y_2, y_3 \ldots y_n$ given the observed values of the `speed` predictor, $x_1, x_2, x_3 \ldots x_n$?
+* This is 
+$$
+\Prob{y_1 \ldots y_n \given x_1\ldots x_n, \beta_0, \beta_1, \sigma} = \prod_{i=1}^n \Prob{y_i \given x_i, \beta_0, \beta_1, \sigma}.
+$$
+* The log likelihood of the model is 
+$$
+\sum_{i=1}^n \log \Prob{y_i \given x_i, \beta_0, \beta_1, \sigma}.
+$$
+We do not know $\beta_0$, $\beta_1$, $\sigma$ and so we use their maximum likelihood estimates, denoted $\hat{\beta}_0$, $\hat{\beta}_1$, $\sigmamle$.
+
+# Regression log likelihood: calculation
+
+```{r, echo=TRUE}
+x <- cars$speed # y is dist, defined above
+M1 <- lm(y ~ x) # normal linear model
+# for each observation y_i, there is a mu_i
+mu_hat <- predict(M1) 
+sigma_mle <- sqrt(mean(residuals(M1)^2)) # mle of sigma
+
+dnorm(y, mean = mu_hat, sd = sigma_mle, log = TRUE) %>% 
+  sum()
+
+# same as 
+logLik(M1)
+
+```
+
+# Likelihood ratios
+
+* We have two model of the `dist` variable.
+* The normal model has a log likelihood of `r logLik(M0) %>% round()`, and the regression model has a log likelihood of `r logLik(M1) %>% round()`. Let's denote these log likelihoods as $\log \mathcal{L}_0$ and $\log \mathcal{L}_1$, respectively.
+* The log of the ratio of likelihoods is as follows:
+$$
+\begin{aligned}
+\log\left(\frac{\mathcal{L}_1}{\mathcal{L}_0}\right) &= \log \mathcal{L}_1 - \log \mathcal{L}_0,\\
+                                                     &= `r logLik(M1) %>% round()` - `r logLik(M0) %>% round()`,\\
+                                                     &= `r round(logLik(M1) - logLik(M0))`.
+\end{aligned}
+$$
+* In other words,
+$$
+\frac{\mathcal{L}_1}{\mathcal{L}_0} = e^{`r round(logLik(M1) - logLik(M0))`} \approx 10^{`r round(log10(exp(1)) * (logLik(M1) - logLik(M0)))`}
+$$
+
+# Residual sum of squares (RSS)
+
+* The sum of squared residuals in normal linear models when using the maximum likelihood estimators is 
+$$
+\begin{aligned}
+\text{RSS} &= \sum_{i=1}^n |y_i - (\hat{\beta}_0 + \hat{\beta}_1 x_i)|^2,\\
+           &= \sum_{i=1}^n |y_i - \hat{y}_i|^2
+\end{aligned}
+$$
+
+* Using R, the residuals are obtained by
+```{r, echo=TRUE}
+head(residuals(M1))
+```
+or
+```{r, echo=TRUE}
+head(y - mu_hat)
+```
+
+
+
+# Residual sum of squares and log likelihood
+
+* The RSS is a measure of the model's lack of fit.
+* The model's log likelihood and its RSS are related as follows:
+$$
+\log \mathcal{L} = -\frac{n}{2}\left(\log(2\pi) - \log(n) + \log(\text{RSS}) + 1 \right) 
+$$
+
+```{r, echo=T}
+rss <- sum(residuals(M1)^2)
+n <- length(y)
+
+-(n/2) * (log(2*pi) - log(n) + log(rss) + 1)
+
+logLik(M1)
+```
+
+* In two normal linear models of the same data, the differences in likelihood or determined only by differences in RSS.
+
+# Root mean square error
+
+* The larger the sample size, the larger the RSS.
+* An alternative to RSS as a measure of model fit is the square root of the mean of the squared residuals, known as the *root mean square error* (RMSE):
+$$
+\text{RMSE} = \sqrt{\frac{\text{RSS}}{n}},
+$$
+* This is $\hat{\sigma}_{\text{mle}}$.
+
+# Mean absolute error
+
+* Related to RMSE is the mean absolute error (MAE), which the mean of the absolute values of the residuals.
+$$
+\text{MAE} = \frac{\sum_{i=1}^n|y_i - \hat{y}_i|}{n}
+$$
+* In R
+```{r, echo=T}
+mean(abs(residuals(M1)))
+```
+
+# Deviance 
+
+* Deviance is used as a measure of model fit in generalized linear models.
+* Strictly speaking, the deviance of model $M_0$ is
+$$
+2 \left(\log\mathcal{L}_{s} - \log\mathcal{L}_{0} \right),
+$$
+where $\log\mathcal{L}_{0}$ is the log likelihood (at its maximum) of model $M_0$, and $\log\mathcal{L}_{s}$ is a *saturated* model, i.e. one with as many parameters as there are data points.
+* When comparing two models, $M_0$ and $M_1$, the saturated model is the same, and so the difference of the deviances of $M_0$ and $M_1$ is 
+$$
+\begin{aligned}
+(- 2 \log\mathcal{L}_{0}) &- (- 2 \log\mathcal{L}_{1}),\\
+\mathcal{D}_0 &- \mathcal{D}_1,
+\end{aligned}
+$$
+and so the deviance of $M_0$ is usually defined simply as 
+$$
+-2 \log\mathcal{L}_{0}.
+$$
+
+# Differences of deviances
+
+* Differences of deviances are equivalent to log likelihood ratios:
+$$
+\begin{aligned}
+\mathcal{D}_0 - \mathcal{D}_1 &= -2 \log\mathcal{L}_{0} -  -2 \log\mathcal{L}_{1},\\
+                              &= -2 \left(\log\mathcal{L}_{0} -  \log\mathcal{L}_{1}\right),\\
+                              &= -2 \log\left(\frac{\mathcal{L}_{0}}{\mathcal{L}_{1}}\right),\\
+                              &= 2 \log\left(\frac{\mathcal{L}_{1}}{\mathcal{L}_{0}}\right).
+\end{aligned}
+$$
+
+* Clearly, $\frac{\mathcal{L}_{1}}{\mathcal{L}_{0}}$ the factor by which the likelihood of model $M_1$ is greater than that of model $M_0$.
+* Therefore, the difference of the deviance of models $M_0$ and $M_1$ ($D_0 - D_1$), gives the (two times) the logarithm of the factor by the likelihood of model $M_1$ is greater than that of model $M_0$.
+* The larger $D_0 - D_1$, the greater the likelihood of $M_1$ compared to $M_0$.
+
+# Logistic regression example
+
+```{r, echo = T}
+cars_df <- mutate(cars, z = dist > median(dist))
+M2 <- glm(z ~ speed,
+          data = cars_df, 
+          family = binomial(link = 'logit')
+)
+
+logLik(M2)
+deviance(M2)
+logLik(M2) * -2
+```
+
+# Conditional probability in logistic regression
+
+* The model in a logistic regression (with one predictor) is
+$$
+\begin{aligned}
+y_i &\sim \textrm{Bernoulli}(\theta_i),\quad\text{for $i \in 1\ldots n$}\\
+\log\left(\frac{\theta_i}{1 - \theta_i}\right) &= \beta_0 + \beta_1 x_i
+\end{aligned}
+$$
+
+* The conditional probability of $y_1, y_2 \ldots y_n$ given $x_1, x_2 \ldots x_n$ is
+$$
+\prod_{i=1}^n \theta_i^{y_i} (1-\theta_i)^{1-y_i},
+$$
+where each $\theta_i$ is 
+$$
+\log\left(\frac{\theta_i}{1 - \theta_i}\right) 
+= \beta_0 + \beta_1 x_i
+$$
+
+# Conditional probability in logistic regression
+
+* The logarithm of the conditional probability of $y_1, y_2 \ldots y_n$ is 
+$$
+\begin{aligned}
+&\log\left(\prod_{i=1}^n \theta_i^{y_i} (1-\theta_i)^{1-y_i}\right) = \sum_{i=1}^n \log\left( \theta_i^{y_i} (1-\theta_i)^{1-y_i}\right),\\
+=&\sum_{i=1}^n \left( y_i \log\theta_i + (1-y_i)\log(1-\theta_i)\right),\\
+=&\sum_{i=1}^n y_i \log\theta_i + \sum_{i=1}^n (1-y_i)\log(1-\theta_i)
+\end{aligned}
+$$
+
+# Conditional probability in logistic regression
+
+```{r, echo=T}
+theta <- predict(M2, type = 'response')
+sum(log(theta[cars_df$z])) + sum(log(1-theta[!cars_df$z]))
+```
+
+```{r, echo=T}
+z <- pull(cars_df, z)
+sum(z * log(theta) + (1-z) * log(1 - theta))
+```
+
+
+# Deviance residuals 
+
+* Deviance residuals are values such that their sum of squares is equal to the model's deviance.
+* We know that the sum, for $i \in 1 \ldots n$, of the following is the log likelihood:
+$$
+y_i \log\theta_i + (1-y_i)\log(1-\theta_i),
+$$
+and so the sum of the following, for $i \in 1 \ldots n$, is the deviance:
+$$
+-2 \left(y_i \log\theta_i + (1-y_i)\log(1-\theta_i)\right).
+$$
+* So the sum of the *squares* of the following, for $i \in 1 \ldots n$, is the deviance:
+$$
+\sqrt{-2 \left(y_i \log\theta_i + (1-y_i)\log(1-\theta_i)\right)}.
+$$
+* All of these values will necessarily be positive.
+* It is conventional for deviance residuals to be negative when $y_i=0$ and positive when $y_i = 1$.
+
+# Deviance residuals 
+
+```{r, echo=T}
+d <- sqrt( -2 * (z * log(theta) + (1-z) * log(1 - theta)))
+sum(d^2)
+```
+
+```{r, echo=T}
+d[c(1, 25, 35, 50)]
+```
+
+```{r, echo=T}
+residuals(M2)[c(1, 25, 35, 50)]
+z[c(1, 25, 35, 50)]
+
+(ifelse(z, 1, -1) * d)[c(1, 25, 35, 50)]
+```
+
