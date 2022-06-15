@@ -144,3 +144,24 @@ logLik(M9) - logLik(M8)
 deviance(M8)
 deviance(M9)
 deviance(M8) - deviance(M9)
+
+# deviance comparison in glm's using Chi sq, Wilks's theorem 
+anova(M8, M9, test = 'Chisq')
+
+# p-value manually calculated
+pchisq(deviance(M8) - deviance(M9), df =1, lower.tail = F)
+
+
+
+# Get some utils ----------------------------------------------------------
+
+source("https://raw.githubusercontent.com/mark-andrews/msms03/main/utils/utils3.R")
+
+# read in housing data
+housing_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/housing.csv")
+housing_df <- mutate(housing_df, logprice = log(price))
+
+# normal model
+M10 <- lm(price ~ 1, data = housing_df)
+# log normal model
+M11 <- lm(logprice ~ 1, data = housing_df)
