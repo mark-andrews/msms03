@@ -163,8 +163,42 @@ source("https://raw.githubusercontent.com/mark-andrews/msms03/main/utils/utils3.
 # read in housing data
 housing_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/housing.csv")
 housing_df <- mutate(housing_df, logprice = log(price))
+ggplot(housing_df, aes(x = price)) + geom_histogram(bins=50)
 
 # normal model
 M10 <- lm(price ~ 1, data = housing_df)
 # log normal model
 M11 <- lm(logprice ~ 1, data = housing_df)
+
+lm_loo_cv(M10)
+lm_loo_cv(M11)
+
+# deviance scale
+lm_loo_cv(M10, deviance_scale = TRUE) # -2 * elpd of M10
+lm_loo_cv(M11, deviance_scale = TRUE) # -2 * elpd of M11
+
+lm_loo_cv(M10, deviance_scale = TRUE) - lm_loo_cv(M11, deviance_scale = TRUE)
+
+
+# AIC ---------------------------------------------------------------------
+
+logLik(M10)      # log likelihood 
+-2 * logLik(M10) # deviance (-2 x log likelihood)
+2 * 2 - 2 * logLik(M10) # AIC: 2K + deviance
+AIC(M10) # using built in AIC
+
+# AIC of M11
+AIC(M11)
+
+# estimate standard errors for elpd
+lm_loo_cv(M10, deviance_scale = TRUE, se = TRUE)
+lm_loo_cv(M11, deviance_scale = TRUE, se = TRUE)
+
+
+# Small sample correction -------------------------------------------------
+
+AIC(M10)
+AICc(M10)
+
+AIC(M11)
+AICc(M11)
