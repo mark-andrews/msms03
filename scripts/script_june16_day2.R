@@ -83,3 +83,9 @@ mcmc_areas(M20,
 # More Bayesian model selection -------------------------------------------
 
 sleep_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/sleepstudy.csv")
+
+ggplot(sleep_df,
+       aes(x = Days, y = Reaction, colour = Subject)) + 
+  geom_point() + 
+  stat_smooth(method ='lm' , se = F) + 
+  facet_wrap(~Subject)
