@@ -20,3 +20,5 @@ library(MuMIn)
 
 M16 <- lm(Fertility ~ ., data = swiss, na.action = 'na.fail')
 M16_all_subsets <- dredge(M16)
+
+conf_set <- get.models(M16_all_subsets, cumsum(weight) < 0.95)
