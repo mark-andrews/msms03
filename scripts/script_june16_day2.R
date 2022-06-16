@@ -89,3 +89,16 @@ ggplot(sleep_df,
   geom_point() + 
   stat_smooth(method ='lm' , se = F) + 
   facet_wrap(~Subject)
+
+
+# Bayesian Linear Regression
+M21 <- brm(Reaction ~ Days, data = sleep_df)
+
+# normal linear mixed effects
+M22 <- brm(Reaction ~ Days + (Days|Subject), data = sleep_df)
+
+# robust linear mixed effects
+M23 <- brm(Reaction ~ Days + (Days|Subject), 
+           family = student(),
+           data = sleep_df)
+
