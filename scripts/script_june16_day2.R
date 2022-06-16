@@ -102,3 +102,8 @@ M23 <- brm(Reaction ~ Days + (Days|Subject),
            family = student(),
            data = sleep_df)
 
+waic(M21)
+waic(M22)
+waic(M23)
+
+loo_compare(waic(M21), waic(M22), waic(M23))
