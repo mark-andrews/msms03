@@ -225,3 +225,13 @@ add_predictions(gssvocab_df, M_gssvocab$model[[1]]) %>%
   ggplot(aes(x = age, y = vocab)) + 
   geom_point() +
   geom_line(aes(y = pred), colour = 'red')
+
+add_predictions(gssvocab_df, M_gssvocab$model[[5]]) %>% 
+  ggplot(aes(x = age, y = vocab)) + 
+  geom_point() +
+  geom_line(aes(y = pred), colour = 'red')
+
+add_predictions(gssvocab_df, M_gssvocab$model[[25]]) %>% 
+  ggplot(aes(x = age, y = vocab)) + 
+  geom_point() +
+  geom_line(aes(y = pred), colour = 'red')
