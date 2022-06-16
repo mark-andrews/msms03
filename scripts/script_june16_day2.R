@@ -73,3 +73,13 @@ student_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/ma
 M20 <- brm(math ~ .,
            data = student_df,
            prior = set_prior("horseshoe(df=3)"))
+
+library(bayesplot)
+mcmc_areas(M20, 
+           pars = vars(-c("b_Intercept", "sigma", "lprior", 'lp__')),
+           prob = 0.95)
+
+
+# More Bayesian model selection -------------------------------------------
+
+sleep_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/sleepstudy.csv")
