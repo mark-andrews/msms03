@@ -249,3 +249,9 @@ wpred <- M_gssvocab %>%
 
 colSums(wpred)
 
+
+# plot weighted predictions
+mutate(gssvocab_df, pred = colSums(wpred)) %>% 
+  ggplot(aes(x = age, y = vocab)) + 
+  geom_point() +
+  geom_line(aes(y = pred), colour = 'red')
