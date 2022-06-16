@@ -202,3 +202,10 @@ AICc(M10)
 
 AIC(M11)
 AICc(M11)
+
+
+# Nonlinear regression with splines ---------------------------------------
+
+gssvocab_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/GSSvocab.csv")
+
+ggplot(gssvocab_df,aes(x = age, y = vocab)) + geom_point()
