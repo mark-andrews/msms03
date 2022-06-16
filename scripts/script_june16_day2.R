@@ -22,3 +22,32 @@ M16 <- lm(Fertility ~ ., data = swiss, na.action = 'na.fail')
 M16_all_subsets <- dredge(M16)
 
 conf_set <- get.models(M16_all_subsets, cumsum(weight) < 0.95)
+
+
+# coefs versus Anova ------------------------------------------------------
+
+round(car::Anova(M16), 3)
+round(summary(M16)$coefficients, 3)
+
+M17 <- lm(weight ~ group, data = PlantGrowth)
+round(car::Anova(M17), 3)
+round(summary(M17)$coefficients, 3)
+
+
+
+# Lasso, ridge, elastic nets ----------------------------------------------
+
+library(glmnet)
+
+y <- student_df$math
+X <- as.matrix(select(student_df, -math))
+
+M18_lasso <- glmnet(X,y, alpha = 1)
+plot(M18_lasso, xvar = 'lambda', label = TRUE)
+
+M18_lasso_cv <- cv.glmnet(X, y, alpha = 1)
+plot(M18_lasso_cv)
+
+coef(M18_lasso, 
+     s = c(M18_lasso_cv$lambda.min,
+           M18_lasso_cv$lambda.1se))
