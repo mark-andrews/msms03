@@ -206,6 +206,7 @@ AICc(M11)
 
 # Nonlinear regression with splines ---------------------------------------
 library(splines)
+library(modelr)
 
 gssvocab_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/GSSvocab.csv")
 
@@ -217,3 +218,10 @@ M_gssvocab <- df_seq %>%
   enframe(name = 'id', value = 'k') %>% 
   mutate(model = map(k, ~lm(vocab ~ ns(age, df = .),
                             data = gssvocab_df)))
+
+
+
+add_predictions(gssvocab_df, M_gssvocab$model[[1]]) %>% 
+  ggplot(aes(x = age, y = vocab)) + 
+  geom_point() +
+  geom_line(aes(y = pred), colour = 'red')
