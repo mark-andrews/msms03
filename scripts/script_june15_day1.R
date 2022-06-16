@@ -157,6 +157,9 @@ pchisq(deviance(M8) - deviance(M9), df =1, lower.tail = F)
 
 source("https://raw.githubusercontent.com/mark-andrews/msms03/main/utils/utils3.R")
 
+# loo cross validation  ---------------------------------------------------
+
+
 # read in housing data
 housing_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/housing.csv")
 housing_df <- mutate(housing_df, logprice = log(price))
