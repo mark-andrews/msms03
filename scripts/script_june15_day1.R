@@ -238,6 +238,14 @@ add_predictions(gssvocab_df, M_gssvocab$model[[25]]) %>%
 
 M_gssvocab %>% mutate(aic = map_dbl(model, AICc)) %>% print(n = Inf)
 
-M_gssvocab %>%
+wpred <- M_gssvocab %>%
   mutate(aic = map_dbl(model, AICc),
-         weight = akaike_weights(aic))
+         weight = akaike_weights(aic),
+         pred = map(model, predict),
+         wpred = map2(weight, pred, ~ .x * .y)) %>% 
+  unnest_wider(wpred) %>% 
+  select(`1`:`72`) %>% 
+  as.matrix()
+
+colSums(wpred)
+
