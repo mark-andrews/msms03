@@ -235,3 +235,5 @@ add_predictions(gssvocab_df, M_gssvocab$model[[25]]) %>%
   ggplot(aes(x = age, y = vocab)) + 
   geom_point() +
   geom_line(aes(y = pred), colour = 'red')
+
+M_gssvocab %>% mutate(aic = map_dbl(model, AICc)) %>% print(n = Inf)
