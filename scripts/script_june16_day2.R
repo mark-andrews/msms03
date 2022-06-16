@@ -39,6 +39,7 @@ round(summary(M17)$coefficients, 3)
 
 library(glmnet)
 
+# lasso
 y <- student_df$math
 X <- as.matrix(select(student_df, -math))
 
@@ -51,3 +52,24 @@ plot(M18_lasso_cv)
 coef(M18_lasso, 
      s = c(M18_lasso_cv$lambda.min,
            M18_lasso_cv$lambda.1se))
+
+#  ridge
+M19_ridge <- glmnet(X,y, alpha = 0)
+plot(M19_ridge, xvar = 'lambda', label = TRUE)
+
+M19_ridge_cv <- cv.glmnet(X, y, alpha = 0)
+plot(M19_ridge_cv)
+
+coef(M19_ridge, 
+     s = c(M19_ridge_cv$lambda.min,
+           M19_ridge_cv$lambda.1se))
+
+
+
+# Bayesian regularized variable selection ---------------------------------
+
+student_df <- read_csv("https://raw.githubusercontent.com/mark-andrews/msms03/main/data/student_scaled.csv")
+
+M20 <- brm(math ~ .,
+           data = student_df,
+           prior = set_prior("horseshoe(df=3)"))
